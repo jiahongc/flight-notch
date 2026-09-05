@@ -1,11 +1,9 @@
-# Security Policy
+# Security policy
 
-## Reporting a Vulnerability
+Report security problems privately using GitHub's **Report a vulnerability** action when it is available. If it is unavailable, open an issue requesting a private reporting channel without including exploit details or personal information. Do not post tokens, exact user coordinates, private logs, or desktop recordings in an issue.
 
-The Bored Team and community take security bugs in Boring Notch seriously. We appreciate your efforts to responsibly disclose your findings, and will make every effort to acknowledge your contributions.
+The current development version on `main` is maintained. This is a locally signed source build, not a notarized binary release.
 
-To report a security issue, please use the GitHub Security Advisory ["Report a Vulnerability"](https://github.com/TheBoredTeam/boring.notch/security/advisories/new) tab.
+Flight Notch requests macOS location permission and sends detection coordinates to the selected aircraft feed. It does not require paid API credentials, store location/flight history, or include analytics. Community API responses are treated as untrusted data; invalid coordinates, stale aircraft, and implausible routes are rejected.
 
-The Bored Team will send a response indicating the next steps in handling your report. After the initial reply to your report, we will keep you informed of the progress towards a fix and full announcement, and may ask for additional information or guidance.
-
-Report security bugs in third-party dependencies to the person or team maintaining the package or dependency.
+Security changes must retain permission checks, rate-limit handling, and missing-data behavior. The build verifies that the signed app has its location entitlement.

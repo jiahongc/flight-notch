@@ -1,133 +1,28 @@
-# Contributing
+# Contributing to Flight Notch
 
-Thank you for taking the time to contribute! ❤️
+Build with Xcode 26 or later on macOS. Open `FlightNotch.xcodeproj`, select the `FlightNotch` scheme, and run `swift test` plus `./build.sh` before submitting a change.
 
-These guidelines help streamline the contribution process for everyone involved. By following them, you'll make it easier for maintainers to review your work and collaborate with you effectively.
+Keep pull requests focused on one behavior. Describe the problem, resulting behavior, and validation. Target `main`. New source belongs in `FlightNotch/`; do not modify the retained upstream application unless the shared panel/shape code requires it.
 
-You can contribute in many ways: writing code, improving documentation, reporting bugs, requesting features, or creating tutorials and blog posts. Every contribution, large or small, helps make Boring Notch better.
+## Working principles
 
-## Table of Contents
+- Prefer native APIs and small, explicit code over new dependencies.
+- Keep the app usable without API keys or paid subscriptions.
+- Respect community API limits. Do not bypass cooldowns, scrape protected endpoints, or invent missing flight details.
+- Label route and phase estimates honestly. Preserve missing-data and stale-data states.
+- Preserve macOS permission checks, notch camera clearance, Reduce Motion, and keyboard/accessibility labels.
+- Add a focused regression test for changes to parsing, filtering, route behavior, or interaction state.
 
-- [Localizations](#localizations)
-- [Contributing Code](#contributing-code)
-  - [Before You Start](#before-you-start)
-  - [Setting Up Your Environment](#setting-up-your-environment)
-  - [Making Changes](#making-changes)
-  - [Pull Requests](#pull-requests)
-<!-- - [Code Style Guidelines](#code-style-guidelines) -->
-- [Reporting Bugs](#reporting-bugs)
-- [Feature Requests](#feature-requests)
-- [Getting Help](#getting-help)
+For UI changes, check map and satellite views, aircraft selection, narrow layouts, auto-hide, Always open, and Settings stacking. Location permission, physical notch geometry, and display changes also need native manual checks when affected.
 
-## Localizations
+## Screenshots and recordings
 
-Please submit all translations to [Crowdin](https://crowdin.com/project/boring-notch). New strings added to the `dev` branch from code changes will sync automatically to Crowdin, and Crowdin will automatically open a new PR with translations to allow us to integrate them.
+Disable automatic location and use the public city-center fallback. Capture only the Flight Notch window. Do not include a desktop, notifications, precise user coordinates, account information, or audio. Review media before adding it to `docs/media/`. Use small PNGs, an H.264 MP4, and an optimized GIF preview.
 
-## Contributing Code
+Keep build products, local working plans, logs, personal settings, credentials, and raw recording frames out of Git. Include only reviewed media and reproducible source changes.
 
-### Before You Start
+## Reporting a bug
 
-- **Check existing issues**: Before creating a new issue or starting work, search existing issues to avoid duplicates.
-- **Discuss major changes**: For significant features or major changes, please open an issue first to discuss your approach with maintainers and the community.
-<!-- - **Review the code style**: Familiarize yourself with our code style guidelines below to ensure consistency. -->
+Include the macOS/Xcode version, steps to reproduce, expected behavior, and whether the issue occurs with location enabled or the fallback. For a route problem, a public callsign and approximate observation time help; do not include your own coordinates.
 
-> [!IMPORTANT]
-> All code contributions must be based on the `dev` branch, not `main`. Documentation changes should be based on `main` instead.
-
-### Setting Up Your Environment
-
-1. **Fork the repository**: Click the "Fork" button at the top of the repository page to create your own copy.
-
-2. **Clone your fork**:
-   ```bash
-   git clone https://github.com/{your-username}/boring.notch.git
-   cd boring.notch
-   ```
-   Replace `{your-username}` with your GitHub username.
-
-3. **Switch to the `dev` branch**:
-   ```bash
-   git checkout dev
-   ```
-   All code contributions must be based on the `dev` branch, not `main`. Documentation changes should be based on `main` instead.
-
-5. **Create a new feature branch**:
-   ```bash
-   git checkout -b feature/{your-feature-name}
-   ```
-   Replace `{your-feature-name}` with a descriptive name. Use lowercase letters, numbers, and hyphens only (e.g., `feature/add-dark-mode` or `fix/notification-crash`).
-
-### Making Changes
-
-1. **Make your changes**: Implement your feature or bug fix. Write clean, well-documented code <!-- following the project's style guidelines. -->
-
-2. **Test your changes**: Ensure your changes work as expected and don't break existing functionality.
-
-3. **Commit your changes**:
-   ```bash
-   git add .
-   git commit -m "Add descriptive commit message"
-   ```
-   Write clear, concise commit messages that explain what your changes do and why.
-
-4. **Keep your branch up to date**:
-   Regularly sync your branch with the latest changes from the `dev` branch to avoid conflicts.
-
-5. **Push to your fork**:
-   ```bash
-   git push origin feature/{your-feature-name}
-   ```
-
-### Pull Requests
-
-1. **Create a pull request**: Go to the original repository and click "New Pull Request." Select your feature branch and set the base branch to `dev`.
-
-2. **Write a detailed description**: Your PR should include:
-   - A clear title summarizing the changes
-   - A detailed description of what was changed and why
-   - Reference to any related issues (e.g., "Fixes #123" or "Relates to #456")
-   - Screenshots or screen recordings for UI changes
-
-3. **Respond to feedback**: Maintainers may request changes.
-
-4. **Be patient**: Reviews take time. Maintainers will get to your PR as soon as they can.
-
-<!-- ## Code Style Guidelines
-
-- Follow the existing code style and conventions used in the project
-- Write clear, self-documenting code with meaningful variable and function names
-- Add comments for complex logic or non-obvious implementations
-- Ensure your code is properly formatted before committing
-- Remove any debugging code, console logs, or commented-out code before submitting -->
-
-## Reporting Bugs
-
-When reporting bugs, please include:
-
-- A clear, descriptive title
-- Steps to reproduce the issue
-- Expected behavior vs. actual behavior
-- Screenshots or error messages if applicable
-- Your environment details (OS version, app version, etc.)
-
-## Feature Requests
-
-Feature requests are welcome! Please:
-
-- Check if the feature has already been requested
-- Clearly describe the feature and its use case
-- Explain why this feature would be valuable to users
-- Be open to discussion and alternative approaches
-
-## Getting Help
-
-If you need help or have questions:
-
-- Check the project documentation
-- Search existing issues for similar questions
-- Open a new issue with the "question" label
-- Join our [community Discord server](https://discord.com/servers/boring-notch-1269588937320566815)
-
----
-
-Thank you for contributing to Boring Notch! Your efforts help make this project better for everyone. 🎉
+By contributing, you agree to distribute your changes under this repository's GPL-3.0 license. Preserve upstream notices and attribution.

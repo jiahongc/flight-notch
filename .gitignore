@@ -1,4 +1,7 @@
 # Xcode
+docs/brainstorms/
+docs/superpowers/
+.local/
 *.xcuserstate
 *.xcuserdata
 *.xcscheme
@@ -53,3 +56,12 @@ build/
 *.xcarchive
 *.dSYM
 
+# Keep the app scheme reproducible for fresh clones and CI.
+!FlightNotch.xcodeproj/xcshareddata/xcschemes/*.xcscheme
+
+# Local credentials and signing material
+.env
+.env.*
+*.p12
+*.p8
+*.mobileprovision
