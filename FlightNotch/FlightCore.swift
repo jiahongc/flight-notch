@@ -149,12 +149,29 @@ struct Aircraft: Decodable, Identifiable, Sendable {
     var aircraftClass: AircraftClass { AircraftClass.classify(typeCode) }
     var size: AircraftSize { AircraftSize.classify(type: typeCode, category: emitterCategory) }
     var typeName: String {
-        var name = typeDescription ?? typeCode ?? "Unknown aircraft"
-        for manufacturer in ["BOEING", "AIRBUS", "EMBRAER", "CESSNA", "BOMBARDIER", "PIPER", "BEECH"] {
-            if name.hasPrefix(manufacturer + " ") { name = manufacturer.capitalized + name.dropFirst(manufacturer.count) }
+        if let description = typeDescription, description != typeCode {
+            // Keep feed-supplied variants and model identifiers; soften prose casing.
+            let acronyms: Set<String> = ["MAX", "ERJ", "CRJ", "ATR", "DHC", "TBM", "II", "III", "IV", "NG", "NGX", "ER", "LR", "XLR"]
+            return description.split(separator: " ").map { word in
+                word.contains(where: \.isNumber) || acronyms.contains(String(word)) ? String(word) : word.capitalized
+            }.joined(separator: " ")
         }
-        return name
+        return typeCode.flatMap { Self.typeNames[$0] } ?? typeCode ?? "Unknown aircraft"
     }
+
+    // Common ICAO designators. These identify families/variants, not exact airframes.
+    // References: FAA aircraft type designators and EUROCONTROL aircraft database.
+    private static let typeNames = [
+        "A319": "Airbus A319", "A320": "Airbus A320", "A321": "Airbus A321",
+        "A19N": "Airbus A319neo", "A20N": "Airbus A320neo", "A21N": "Airbus A321neo",
+        "B737": "Boeing 737-700", "B738": "Boeing 737-800", "B739": "Boeing 737-900",
+        "B38M": "Boeing 737 MAX 8", "B39M": "Boeing 737 MAX 9",
+        "E170": "Embraer E170", "E75L": "Embraer E175 (long wing)", "E75S": "Embraer E175 (short wing)",
+        "CRJ7": "Bombardier CRJ-700", "CRJ9": "Bombardier CRJ-900",
+        "B06": "Bell 206", "B407": "Bell 407", "B429": "Bell 429",
+        "S76": "Sikorsky S-76", "R44": "Robinson R44",
+        "C172": "Cessna 172", "C182": "Cessna 182", "SR22": "Cirrus SR22"
+    ]
     var phase: FlightPhase {
         if onGround { return .ground }
         guard let altitude, let verticalRate else { return .unknown }

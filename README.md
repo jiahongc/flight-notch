@@ -12,9 +12,9 @@ No API keys. No paid API subscription. No backend to run.
 
 ![Flight Notch demonstration: select aircraft, switch map styles, and collapse the notch](docs/media/demo.gif)
 
-[Watch or download the 25-second MP4 recording](docs/media/demo.mp4).
+[Watch or download the 12-second MP4 recording](docs/media/demo.mp4).
 
-These captures show the app using its fixed public Jersey City center with automatic location disabled. They contain no personal desktop, other applications, audio, or actual user location.
+These captures show the app using its fixed public Jersey City center with automatic location disabled. They contain no personal desktop, other applications, audio, or actual user location. The demo plays at 1.25× speed with setup and waiting time cut out.
 
 ## What it does
 
@@ -22,7 +22,7 @@ These captures show the app using its fixed public Jersey City center with autom
 - **Map and satellite:** pan, zoom, and recenter without changing your detection area.
 - **Flight labels:** each aircraft shows its broadcast callsign, or registration when no callsign is transmitted. The selected aircraft turns blue and stays in front.
 - **Relative aircraft sizes:** light aircraft and regional jets have smaller icons than airliners and heavy jets. Icons rotate with the reported track.
-- **Aircraft details:** type, registration, distance, altitude, speed, estimated phase, and route airports when available.
+- **Compact aircraft details:** model, ICAO type, registration, distance, altitude, speed, estimated phase, and route airports in three tight rows. The city and update status sit below the map.
 - **Location awareness:** macOS determines your location and the app shows the city name. A clearly labeled Jersey City fallback works without permission.
 - **Compact controls:** radius, airline/type filters, location, map style, and feed selection live in Settings.
 - **Auto-hide or Always open:** collapse after 3, 5, 10, or 30 seconds, or pin the map open. Preferences survive restarts.
@@ -38,6 +38,10 @@ These captures show the app using its fixed public Jersey City center with autom
 ### Settings
 
 ![Notch visibility and map controls](docs/media/settings.png)
+
+### Aircraft without a flight number
+
+![Private aircraft model and ICAO type with a clear missing-flight-number state](docs/media/aircraft.png)
 
 </details>
 
@@ -110,6 +114,8 @@ Padded flight numbers are normalized for lookups (for example, `UAL02759` → `U
 **Map imagery:** Apple MapKit supplies the standard map and satellite imagery. Satellite imagery is not live video. Apple Maps attribution remains visible.
 
 **Aircraft size and phase:** icon size is a visual approximation from aircraft family and ADS-B emitter category, not exact wingspan or map scale. Landing/departing labels are altitude/vertical-speed estimates, not confirmation of a runway or flight plan. Distances are horizontal nautical miles.
+
+Model names use the feed description or a small offline lookup for common ICAO type codes, including MAX/neo and regional-jet variants. The code stays visible beside the model. Exact subtypes are preserved when supplied by the feed; a broad type such as `S76` is never turned into a guessed S-76 variant. Hover over a truncated model or route for the full details.
 
 ## Development
 

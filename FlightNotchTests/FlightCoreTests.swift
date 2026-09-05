@@ -48,7 +48,15 @@ final class FlightCoreTests: XCTestCase {
     func testReadableAircraftType() throws {
         let plane = try decode(",\"t\":\"B39M\",\"desc\":\"BOEING 737 MAX 9\"")
         XCTAssertEqual(plane.typeName, "Boeing 737 MAX 9")
-        XCTAssertEqual(try decode(",\"t\":\"A321\"").typeName, "A321")
+        XCTAssertEqual(try decode(",\"t\":\"A321\"").typeName, "Airbus A321")
+        XCTAssertEqual(try decode(",\"t\":\"B38M\"").typeName, "Boeing 737 MAX 8")
+        XCTAssertEqual(try decode(",\"t\":\"E75L\"").typeName, "Embraer E175 (long wing)")
+        XCTAssertEqual(try decode(",\"t\":\"CRJ9\"").typeName, "Bombardier CRJ-900")
+        XCTAssertEqual(try decode(",\"t\":\"B38M\",\"desc\":\"B38M\"").typeName, "Boeing 737 MAX 8")
+        XCTAssertEqual(try decode(",\"t\":\"S76\",\"desc\":\"SIKORSKY S-76C++\"").typeName, "Sikorsky S-76C++", "Keep a supplied variant")
+        XCTAssertEqual(try decode(",\"t\":\"S76\"").typeName, "Sikorsky S-76", "Do not invent a missing variant")
+        XCTAssertEqual(try decode(",\"desc\":\"SIKORSKY S-76 SPIRIT\"").typeName, "Sikorsky S-76 Spirit")
+        XCTAssertEqual(try decode(",\"t\":\"ZZ99\"").typeName, "ZZ99")
         XCTAssertEqual(try decode().typeName, "Unknown aircraft")
     }
 

@@ -34,7 +34,7 @@ final class NotchInteraction: ObservableObject {
 
     var compactWidth: CGFloat { max(240, notchWidth + 168) }
     var expandedWidth: CGFloat { max(480, compactWidth) }
-    var expandedHeight: CGFloat { notchHeight + 302 }
+    var expandedHeight: CGFloat { notchHeight + 290 }
 
     func hover(_ inside: Bool) {
         pointerInside = inside

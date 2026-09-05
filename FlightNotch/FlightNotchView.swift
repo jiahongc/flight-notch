@@ -115,56 +115,38 @@ private struct FlightMapView: View {
                 if !camera.positionedByUser { recenter() }
             }
 
-            VStack(spacing: 4) {
+            VStack(spacing: 3) {
                 if let flight = store.selectedFlight {
-                    HStack(alignment: .center, spacing: 10) {
-                        VStack(alignment: .leading, spacing: 2) {
-                            HStack(alignment: .firstTextBaseline, spacing: 6) {
-                                Text(flight.aircraft.displayName).font(.system(size: 15, weight: .bold, design: .rounded))
-                                if let registration = flight.aircraft.registration, registration != flight.aircraft.displayName {
-                                    Text(registration).font(.system(size: 9, design: .monospaced)).foregroundStyle(.secondary)
-                                }
-                            }.lineLimit(1)
-                            Text(flight.aircraft.typeName).font(.system(size: 11, weight: .medium)).lineLimit(1)
-                                .help([flight.aircraft.typeName, flight.aircraft.typeCode, flight.aircraft.registration].compactMap { $0 }.joined(separator: " · "))
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        Text(flight.aircraft.displayName)
+                            .font(.system(size: 15, weight: .bold, design: .rounded)).fixedSize()
+                        if let registration = flight.aircraft.registration, registration != flight.aircraft.displayName {
+                            Text(registration).font(.system(size: 9, design: .monospaced)).foregroundStyle(.secondary)
                         }
-                        Spacer(minLength: 0)
-                        if let route = store.selectedRoute, let origin = route.origin, let destination = route.destination {
-                            if route.airports.count > 2 {
-                                VStack(alignment: .trailing, spacing: 3) {
-                                    Text("ROUTE STOPS").font(.system(size: 8, weight: .medium)).tracking(0.5).foregroundStyle(.secondary)
-                                    Text(route.airports.map(\.code).joined(separator: " → "))
-                                        .font(.system(size: 12, weight: .semibold, design: .rounded)).foregroundStyle(flightBlue)
-                                        .multilineTextAlignment(.trailing).fixedSize(horizontal: false, vertical: true)
-                                }.frame(maxWidth: 170, alignment: .trailing)
-                                    .help("Multi-stop itinerary from ADSB.im. The current leg is not confirmed.")
-                            } else {
-                                HStack(spacing: 10) {
-                                    airport(origin, label: "DEPARTURE")
-                                    Image(systemName: "arrow.right").font(.system(size: 12)).foregroundStyle(.secondary)
-                                    airport(destination, label: "DESTINATION")
-                                }.help("\(route.airports.map(\.name).joined(separator: " → ")). Route estimate from ADSB.im aircraft messages and historical tracks; diversions may differ.")
-                            }
-                        } else {
-                            Text(store.selectedRouteMessage).font(.system(size: 10)).foregroundStyle(.secondary)
-                                .lineLimit(2).multilineTextAlignment(.trailing).fixedSize(horizontal: false, vertical: true)
-                                .frame(maxWidth: 140, alignment: .trailing)
-                                .help(store.selectedRouteDetail)
-                        }
+                        Spacer(minLength: 4)
+                        routeSummary
                     }
-                    HStack(spacing: 12) {
-                        Label(String(format: "%.1f NM %@", flight.distance, flight.direction), systemImage: "location")
-                        Text(flight.aircraft.altitude.map { $0.formatted(.number.precision(.fractionLength(0))) + " ft" } ?? "Altitude —")
-                        Text(flight.aircraft.speed.map { String(format: "%.0f kt", $0) } ?? "Speed —")
-                        Spacer()
-                        Label(flight.aircraft.phase.rawValue + " · est.", systemImage: flight.aircraft.phase.symbol)
-                            .foregroundStyle(flightBlue)
-                            .help("Phase estimated from altitude and vertical speed. Vertical speed: \(flight.aircraft.verticalRate.map { String(format: "%.0f ft/min", $0) } ?? "unknown").")
-                    }.font(.system(size: 10, weight: .medium, design: .rounded)).foregroundStyle(.secondary)
+                    HStack(spacing: 8) {
+                        HStack(spacing: 5) {
+                            Text(flight.aircraft.typeName).font(.system(size: 11, weight: .medium)).lineLimit(1)
+                            if let code = flight.aircraft.typeCode, code != flight.aircraft.typeName {
+                                Text(code).font(.system(size: 9, design: .monospaced)).foregroundStyle(.secondary).fixedSize()
+                            }
+                        }
+                        .help([flight.aircraft.typeName, flight.aircraft.typeCode, flight.aircraft.registration].compactMap { $0 }.joined(separator: " · "))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        HStack(spacing: 8) {
+                            Text(String(format: "%.1f NM %@", flight.distance, flight.direction))
+                            Text(flight.aircraft.altitude.map { $0.formatted(.number.precision(.fractionLength(0))) + " ft" } ?? "Alt —")
+                            Text(flight.aircraft.speed.map { String(format: "%.0f kt", $0) } ?? "Speed —")
+                        }
+                        .font(.system(size: 10, weight: .medium, design: .rounded)).foregroundStyle(.secondary)
+                        .fixedSize()
+                    }
                 } else {
                     HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(emptyTitle).font(.system(size: 16, weight: .semibold, design: .rounded))
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(emptyTitle).font(.system(size: 14, weight: .semibold, design: .rounded))
                             Text(emptyDetail).font(.system(size: 10)).foregroundStyle(.secondary).lineLimit(2)
                         }
                         Spacer()
@@ -173,16 +155,27 @@ private struct FlightMapView: View {
                         }
                     }.frame(maxWidth: .infinity, alignment: .leading)
                 }
-                HStack(spacing: 4) {
-                    if store.hasFilters { Text("Filtered") }
-                    Spacer()
-                    if store.errorMessage != nil || store.paused { Text(store.retryLabel).foregroundStyle(.orange) }
-                    else { Text(store.ageLabel) }
+                HStack(spacing: 6) {
+                    HStack(spacing: 4) {
+                        Circle().fill(store.locationHasFix ? .green : .orange).frame(width: 4, height: 4)
+                        Text(store.locationLabel).lineLimit(1)
+                        if store.hasFilters { Image(systemName: "line.3.horizontal.decrease").help("Aircraft filters are active") }
+                    }.help(store.locationDetail)
+                    Spacer(minLength: 2)
+                    if let flight = store.selectedFlight {
+                        Label(flight.aircraft.phase.rawValue + " · est.", systemImage: flight.aircraft.phase.symbol)
+                            .foregroundStyle(flightBlue).fixedSize()
+                            .help("Phase estimated from altitude and vertical speed. Vertical speed: \(flight.aircraft.verticalRate.map { String(format: "%.0f ft/min", $0) } ?? "unknown").")
+                    }
+                    Spacer(minLength: 2)
+                    Group {
+                        if store.errorMessage != nil || store.paused { Text(store.retryLabel).foregroundStyle(.orange) }
+                        else { Text(store.ageLabel) }
+                    }.fixedSize().help(store.errorMessage ?? "Aircraft positions update every 8 seconds.")
                 }.font(.system(size: 9)).foregroundStyle(.secondary)
-                    .help(store.errorMessage ?? "Aircraft positions update every 8 seconds. Satellite imagery is not live video. Detection stays centered on your location.")
             }
             .padding(.horizontal, 24).padding(.vertical, 6)
-            .frame(height: 82).background(.background)
+            .frame(height: 70).background(.background)
         }
         .task(id: store.selectedFlight.map { "\($0.id):\($0.aircraft.callsign ?? "")" }) {
             while !Task.isCancelled {
@@ -194,12 +187,6 @@ private struct FlightMapView: View {
 
     private var mapToolbar: some View {
         HStack(alignment: .top) {
-            HStack(spacing: 6) {
-                Circle().fill(store.locationHasFix ? .green : .orange).frame(width: 5, height: 5)
-                Text(store.locationLabel).font(.system(size: 10, weight: .medium))
-            }
-            .padding(.horizontal, 10).padding(.vertical, 8)
-            .background(.regularMaterial, in: Capsule()).help(store.locationDetail)
             Spacer()
             HStack(spacing: 1) {
                 mapButton("location", label: "Recenter map", action: recenter)
@@ -215,12 +202,26 @@ private struct FlightMapView: View {
             .buttonStyle(.plain).help(label).accessibilityLabel(label)
     }
 
-    private func airport(_ airport: RouteAirport, label: String) -> some View {
-        VStack(alignment: .leading, spacing: 1) {
-            Text(label).font(.system(size: 8, weight: .medium)).tracking(0.5).foregroundStyle(.secondary)
-            Text(airport.code).font(.system(size: 16, weight: .semibold, design: .rounded)).foregroundStyle(flightBlue)
-            Text(airport.municipality ?? airport.name).font(.system(size: 9)).foregroundStyle(.secondary).lineLimit(1)
-        }.frame(width: 65, alignment: .leading)
+    @ViewBuilder
+    private var routeSummary: some View {
+        if let route = store.selectedRoute {
+            HStack(alignment: .firstTextBaseline, spacing: 5) {
+                Text(route.airports.count > 2 ? "Stops" : "Route")
+                    .font(.system(size: 9)).foregroundStyle(.secondary)
+                Text(route.airports.map(\.code).joined(separator: " → "))
+                    .font(.system(size: 13, weight: .semibold, design: .rounded)).foregroundStyle(flightBlue)
+                    .lineLimit(1).minimumScaleFactor(0.85)
+            }
+            .frame(maxWidth: 220, alignment: .trailing)
+            .help(route.airports.map(\.name).joined(separator: " → ") + (route.airports.count > 2
+                ? ". Multi-stop itinerary; the current leg is not confirmed."
+                : ". Departure → destination estimate; diversions may differ."))
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel((route.airports.count > 2 ? "Route stops: " : "Departure to destination: ") + route.airports.map(\.code).joined(separator: " to "))
+        } else {
+            Text(store.selectedRouteMessage).font(.system(size: 10)).foregroundStyle(.secondary)
+                .lineLimit(1).help(store.selectedRouteDetail)
+        }
     }
 
     private var emptyTitle: String {
