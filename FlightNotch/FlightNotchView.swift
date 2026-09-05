@@ -15,7 +15,7 @@ struct FlightNotchView: View {
                 cameraStrip
                 if interaction.expanded {
                     FlightMapView(store: store, interaction: interaction, showSettings: showSettings)
-                        .frame(height: 330)
+                        .frame(height: interaction.expandedHeight - interaction.notchHeight)
                         .transition(.opacity)
                 }
             }
@@ -115,20 +115,23 @@ private struct FlightMapView: View {
                 if !camera.positionedByUser { recenter() }
             }
 
-            VStack(spacing: 7) {
+            VStack(spacing: 4) {
                 if let flight = store.selectedFlight {
                     HStack(alignment: .center, spacing: 10) {
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text(flight.aircraft.displayName).font(.system(size: 16, weight: .bold, design: .rounded))
+                        VStack(alignment: .leading, spacing: 2) {
+                            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                                Text(flight.aircraft.displayName).font(.system(size: 15, weight: .bold, design: .rounded))
+                                if let registration = flight.aircraft.registration, registration != flight.aircraft.displayName {
+                                    Text(registration).font(.system(size: 9, design: .monospaced)).foregroundStyle(.secondary)
+                                }
+                            }.lineLimit(1)
                             Text(flight.aircraft.typeName).font(.system(size: 11, weight: .medium)).lineLimit(1)
-                                .help(flight.aircraft.typeName)
-                            Text([flight.aircraft.typeCode, flight.aircraft.registration].compactMap { $0 }.joined(separator: " · "))
-                                .font(.system(size: 9, design: .monospaced)).foregroundStyle(.secondary)
+                                .help([flight.aircraft.typeName, flight.aircraft.typeCode, flight.aircraft.registration].compactMap { $0 }.joined(separator: " · "))
                         }
                         Spacer(minLength: 0)
                         if let route = store.selectedRoute, let origin = route.origin, let destination = route.destination {
                             if route.airports.count > 2 {
-                                VStack(alignment: .trailing, spacing: 5) {
+                                VStack(alignment: .trailing, spacing: 3) {
                                     Text("ROUTE STOPS").font(.system(size: 8, weight: .medium)).tracking(0.5).foregroundStyle(.secondary)
                                     Text(route.airports.map(\.code).joined(separator: " → "))
                                         .font(.system(size: 12, weight: .semibold, design: .rounded)).foregroundStyle(flightBlue)
@@ -146,6 +149,7 @@ private struct FlightMapView: View {
                             Text(store.selectedRouteMessage).font(.system(size: 10)).foregroundStyle(.secondary)
                                 .lineLimit(2).multilineTextAlignment(.trailing).fixedSize(horizontal: false, vertical: true)
                                 .frame(maxWidth: 140, alignment: .trailing)
+                                .help(store.selectedRouteDetail)
                         }
                     }
                     HStack(spacing: 12) {
@@ -170,7 +174,6 @@ private struct FlightMapView: View {
                     }.frame(maxWidth: .infinity, alignment: .leading)
                 }
                 HStack(spacing: 4) {
-                    if let via = store.selectedRoute?.via { Text("Via \(via)").lineLimit(1).help(via) }
                     if store.hasFilters { Text("Filtered") }
                     Spacer()
                     if store.errorMessage != nil || store.paused { Text(store.retryLabel).foregroundStyle(.orange) }
@@ -178,8 +181,8 @@ private struct FlightMapView: View {
                 }.font(.system(size: 9)).foregroundStyle(.secondary)
                     .help(store.errorMessage ?? "Aircraft positions update every 8 seconds. Satellite imagery is not live video. Detection stays centered on your location.")
             }
-            .padding(.horizontal, 24).padding(.vertical, 10)
-            .frame(height: 110).background(.background)
+            .padding(.horizontal, 24).padding(.vertical, 6)
+            .frame(height: 82).background(.background)
         }
         .task(id: store.selectedFlight.map { "\($0.id):\($0.aircraft.callsign ?? "")" }) {
             while !Task.isCancelled {
@@ -213,9 +216,9 @@ private struct FlightMapView: View {
     }
 
     private func airport(_ airport: RouteAirport, label: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 1) {
             Text(label).font(.system(size: 8, weight: .medium)).tracking(0.5).foregroundStyle(.secondary)
-            Text(airport.code).font(.system(size: 18, weight: .semibold, design: .rounded)).foregroundStyle(flightBlue)
+            Text(airport.code).font(.system(size: 16, weight: .semibold, design: .rounded)).foregroundStyle(flightBlue)
             Text(airport.municipality ?? airport.name).font(.system(size: 9)).foregroundStyle(.secondary).lineLimit(1)
         }.frame(width: 65, alignment: .leading)
     }

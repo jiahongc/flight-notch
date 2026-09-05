@@ -52,7 +52,7 @@ cd flight-notch
 open "$HOME/Library/Caches/FlightNotch/DerivedData/Build/Products/Release/Flight Notch.app"
 ```
 
-For development, open **FlightNotch.xcodeproj** and choose the **FlightNotch** scheme. The original `boringNotch.xcodeproj` is upstream reference and does not build this app.
+For development, open **FlightNotch.xcodeproj** and choose the **FlightNotch** scheme.
 
 The build uses local ad-hoc signing, including the location entitlement. No Apple developer account, signing certificate, Swift package download, or API account is required. The script verifies the signed location entitlement before reporting success.
 
@@ -105,6 +105,8 @@ Position requests do not overlap. Errors back off, `Retry-After` is respected, a
 
 Routes are **estimates, not confirmed flight plans**. Private flights, diversions, and changed assignments may have no usable route. Missing airports are never invented.
 
+Padded flight numbers are normalized for lookups (for example, `UAL02759` → `UAL2759`), while map labels keep the broadcast identity. The details card distinguishes **No flight number**, **No route published**, and temporary connection/service errors. Hover over the message for context. A registration alone usually cannot identify a route.
+
 **Map imagery:** Apple MapKit supplies the standard map and satellite imagery. Satellite imagery is not live video. Apple Maps attribution remains visible.
 
 **Aircraft size and phase:** icon size is a visual approximation from aircraft family and ADS-B emitter category, not exact wingspan or map scale. Landing/departing labels are altitude/vertical-speed estimates, not confirmation of a runway or flight plan. Distances are horizontal nautical miles.
@@ -120,16 +122,15 @@ The tests cover ADS-B decoding, geometry, filters, stale positions, feed errors 
 
 | Path | Purpose |
 | --- | --- |
-| `FlightNotch/` | Flight models, feed/route clients, location, map UI, and app lifecycle |
+| `FlightNotch/` | Flight models, feed/route clients, location, map UI, notch window/shape, and app lifecycle |
 | `FlightNotchTests/` | Focused model, network-stub, and interaction tests |
 | `FlightNotch.xcodeproj/` | Standalone app target with no external package dependencies |
 | `docs/media/` | Reviewed screenshots and short app-only demo |
-| `boringNotch/` and original support directories | Retained upstream source/reference; only the panel and notch shape are compiled into Flight Notch |
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidance and [SECURITY.md](SECURITY.md) for reporting security issues.
 
 ## Credits and license
 
-Flight Notch is adapted from [Boring Notch](https://github.com/TheBoredTeam/boring.notch) under the [GNU GPL-3.0 license](LICENSE). It reuses Boring Notch's panel behavior and notch geometry; original authorship notices and [third-party licenses](THIRD_PARTY_LICENSES) remain intact. The notch shape credits DynamicNotchKit by Kai Azim.
+Released under [GNU GPL-3.0](LICENSE). The notch window and screen positioning were adapted from [Boring Notch](https://github.com/TheBoredTeam/boring.notch); the notch shape originated in [DynamicNotchKit](https://github.com/MrKai77/DynamicNotchKit) by Kai Azim. See [third-party notices](THIRD_PARTY_LICENSES) for authorship, modification dates, and applicable licenses.
 
-The upstream media, shelf, calendar, private SkyLight/XPC services, updater, and package dependencies are not compiled or started by Flight Notch. This project is independent of the aircraft data providers and Apple.
+This project is independent of those projects, the aircraft data providers, and Apple.

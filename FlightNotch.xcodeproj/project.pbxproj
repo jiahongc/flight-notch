@@ -16,8 +16,8 @@
         B10000000000000000000002 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlightNotch/FlightStore.swift; sourceTree = SOURCE_ROOT; };
         B10000000000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlightNotch/FlightNotchApp.swift; sourceTree = SOURCE_ROOT; };
         B10000000000000000000004 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlightNotch/FlightNotchView.swift; sourceTree = SOURCE_ROOT; };
-        B10000000000000000000005 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = boringNotch/components/Notch/BoringNotchWindow.swift; sourceTree = SOURCE_ROOT; };
-        B10000000000000000000006 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = boringNotch/components/Notch/NotchShape.swift; sourceTree = SOURCE_ROOT; };
+        B10000000000000000000005 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlightNotch/FlightNotchWindow.swift; sourceTree = SOURCE_ROOT; };
+        B10000000000000000000006 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlightNotch/NotchShape.swift; sourceTree = SOURCE_ROOT; };
         B10000000000000000000007 = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = FlightNotch/Info.plist; sourceTree = SOURCE_ROOT; };
         B10000000000000000000008 = {isa = PBXFileReference; explicitFileType = wrapper.application; path = "Flight Notch.app"; sourceTree = BUILT_PRODUCTS_DIR; };
         B10000000000000000000010 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlightNotch/NotchInteraction.swift; sourceTree = SOURCE_ROOT; };

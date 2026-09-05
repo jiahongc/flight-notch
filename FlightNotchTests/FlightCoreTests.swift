@@ -124,6 +124,52 @@ final class FlightCoreTests: XCTestCase {
         XCTAssertEqual(route?.destination?.municipality, "New York")
     }
 
+    func testPaddedCallsignUsesCanonicalRouteAndCache() async throws {
+        let config = URLSessionConfiguration.ephemeral
+        config.protocolClasses = [RouteStub.self]
+        let client = RouteClient(session: URLSession(configuration: config))
+        // The live service returned unknown for UAL02759 but ORD-EWR for UAL2759.
+        let padded = try await client.lookup("UAL02759", near: .jerseyCity)
+        XCTAssertEqual(padded?.callsign, "UAL2759")
+        let canonical = try await client.lookup("UAL2759", near: .jerseyCity)
+        XCTAssertEqual(canonical?.origin?.code, padded?.origin?.code)
+        XCTAssertTrue(padded?.matches(" ual02759 ") == true)
+        XCTAssertFalse(padded?.matches("UAL2758") == true)
+        XCTAssertEqual(RouteClient.normalizedCallsign("BAW001A"), "BAW1A")
+        XCTAssertEqual(RouteClient.normalizedCallsign("N001AB"), "N001AB", "Do not rewrite aircraft registrations")
+        XCTAssertEqual(RouteClient.normalizedCallsign("BAW0A"), "BAW0A", "Keep a single zero")
+    }
+
+    @MainActor
+    func testMissingFlightNumberAndRouteAreDifferentStates() async throws {
+        let suite = "RouteMessages-\(UUID().uuidString)"
+        let preferences = UserDefaults(suiteName: suite)!
+        defer { preferences.removePersistentDomain(forName: suite) }
+        preferences.set(false, forKey: "useLocation")
+        preferences.set(2.0, forKey: "radius")
+        let config = URLSessionConfiguration.ephemeral
+        config.protocolClasses = [MissingRouteStub.self]
+        let store = FlightStore(preferences: preferences, client: client(), routeClient: RouteClient(session: URLSession(configuration: config)))
+        XCTAssertEqual(store.selectedRouteMessage, "No flight number")
+        store.start()
+        defer { store.stop() }
+        for _ in 0..<100 where store.lastUpdate == nil { try await Task.sleep(for: .milliseconds(10)) }
+        XCTAssertEqual(store.selectedFlight?.aircraft.callsign, "DAL1")
+        await store.loadSelectedRoute()
+        XCTAssertNil(store.selectedRoute)
+        XCTAssertEqual(store.selectedRouteMessage, "No route published")
+        store.stop()
+        preferences.set(6.0, forKey: "radius")
+        let privateFlight = FlightStore(preferences: preferences, client: client())
+        privateFlight.start()
+        defer { privateFlight.stop() }
+        for _ in 0..<100 where privateFlight.lastUpdate == nil { try await Task.sleep(for: .milliseconds(10)) }
+        XCTAssertEqual(privateFlight.selectedFlight?.aircraft.registration, "N123AB")
+        await privateFlight.loadSelectedRoute()
+        XCTAssertNil(privateFlight.selectedRoute)
+        XCTAssertEqual(privateFlight.selectedRouteMessage, "No flight number")
+    }
+
     func testRouteCooldownStopsFurtherNetworkRequests() async throws {
         let config = URLSessionConfiguration.ephemeral
         config.protocolClasses = [RouteStub.self]
@@ -277,9 +323,22 @@ private final class FeedStub: URLProtocol, @unchecked Sendable {
         let status = radius == "3" ? 429 : 200
         let response = HTTPURLResponse(url: request.url!, statusCode: status, httpVersion: nil, headerFields: ["Retry-After": "120"])!
         let timestamp = radius == "4" ? 0 : Date().timeIntervalSince1970 * 1000
-        let data = Data("{\"ac\":[{\"hex\":\"test\",\"flight\":\"DAL1\",\"lat\":40.72,\"lon\":-74.04,\"seen_pos\":0}],\"now\":\(timestamp)}".utf8)
+        let identity = radius == "6" ? #""flight":"N123AB","r":"N123AB""# : #""flight":"DAL1""#
+        let data = Data("{\"ac\":[{\"hex\":\"test\",\(identity),\"lat\":40.72,\"lon\":-74.04,\"seen_pos\":0}],\"now\":\(timestamp)}".utf8)
         client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
         client?.urlProtocol(self, didLoad: data)
+        client?.urlProtocolDidFinishLoading(self)
+    }
+    override func stopLoading() { }
+}
+
+private final class MissingRouteStub: URLProtocol, @unchecked Sendable {
+    override class func canInit(with request: URLRequest) -> Bool { true }
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+    override func startLoading() {
+        let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
+        client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+        client?.urlProtocol(self, didLoad: Data("[]".utf8))
         client?.urlProtocolDidFinishLoading(self)
     }
     override func stopLoading() { }

@@ -46,7 +46,7 @@ final class FlightStore: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published private(set) var route: FlightRoute?
     @Published private(set) var routeCallsign: String?
     @Published private(set) var routeLoading = false
-    @Published private(set) var routeMessage = "Route unavailable"
+    @Published private(set) var routeMessage = "No route published"
 
     private let preferences: UserDefaults
     private let location = CLLocationManager()
@@ -94,17 +94,32 @@ final class FlightStore: NSObject, ObservableObject, CLLocationManagerDelegate {
         return route
     }
     var selectedRouteMessage: String {
-        guard let callsign = selectedFlight?.aircraft.callsign else { return "Route unavailable" }
+        guard let aircraft = selectedFlight?.aircraft, let callsign = aircraft.callsign,
+              callsign != aircraft.registration else { return "No flight number" }
         if callsign != routeCallsign || routeLoading { return "Looking up route…" }
-        return route != nil && selectedRoute == nil ? "Route unavailable near this position" : routeMessage
+        return route != nil && selectedRoute == nil ? "Route doesn't match position" : routeMessage
+    }
+    var selectedRouteDetail: String {
+        if selectedRouteMessage == "No flight number" {
+            return "This aircraft is broadcasting only its registration or no flight number. The free route service cannot identify its departure and destination from that alone."
+        }
+        if selectedRouteMessage == "No route published" {
+            return "The free route service has no usable route for this callsign. Coverage varies, especially for private flights and helicopters."
+        }
+        return "Only routes matching this aircraft's callsign and position are shown. Lookups retry once a minute while the map is open; service cooldowns are respected."
     }
 
     func loadSelectedRoute() async {
-        let callsign = selectedFlight?.aircraft.callsign
-        route = nil
+        let aircraft = selectedFlight?.aircraft
+        let callsign = aircraft?.callsign
+        if routeCallsign != callsign { route = nil }
         routeCallsign = callsign
-        routeMessage = "Route unavailable"
-        guard let callsign, let position = selectedFlight?.aircraft.coordinate else { routeLoading = false; return }
+        routeMessage = "No route published"
+        guard let callsign, callsign != aircraft?.registration, let position = aircraft?.coordinate else {
+            route = nil
+            routeLoading = false
+            return
+        }
         routeLoading = true
         do {
             let result = try await routeClient.lookup(callsign, near: position)
@@ -114,8 +129,13 @@ final class FlightStore: NSObject, ObservableObject, CLLocationManagerDelegate {
             routeLoading = false
         } catch {
             guard !Task.isCancelled, selectedFlight?.aircraft.callsign == callsign else { return }
+            route = nil
             routeLoading = false
-            routeMessage = "Route lookup unavailable"
+            if case FeedError.http(let status, _) = error {
+                routeMessage = status == 429 || status == 403 ? "Route service cooling down" : "Route service unavailable"
+            } else {
+                routeMessage = "Route connection unavailable"
+            }
         }
     }
     var hasFilters: Bool { !airline.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || aircraftClass != .all }

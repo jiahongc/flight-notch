@@ -29,13 +29,6 @@ private struct FlightMenu: View {
 }
 
 @MainActor
-final class FlightNotchWindow: BoringNotchWindow {
-    // Allow keyboard focus when clicked, while the nonactivatingPanel
-    // style avoids activating the app on hover.
-    override var canBecomeKey: Bool { true }
-}
-
-@MainActor
 final class FlightNotchDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     let store = FlightStore()
     let interaction = NotchInteraction()

@@ -6,7 +6,7 @@ let package = Package(
     platforms: [.macOS(.v14)],
     products: [.library(name: "FlightCore", targets: ["FlightCore"])],
     targets: [
-        .target(name: "FlightCore", path: "FlightNotch", exclude: ["FlightNotchApp.swift", "FlightNotchView.swift", "Info.plist", "FlightNotch.entitlements"]),
+        .target(name: "FlightCore", path: "FlightNotch", exclude: ["FlightNotchApp.swift", "FlightNotchView.swift", "FlightNotchWindow.swift", "NotchShape.swift", "Info.plist", "FlightNotch.entitlements"]),
         .testTarget(name: "FlightCoreTests", dependencies: ["FlightCore"], path: "FlightNotchTests")
     ]
 )

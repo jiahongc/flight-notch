@@ -34,7 +34,7 @@ struct FlightRoute: Decodable, Sendable {
     }
 
     func matches(_ requestedCallsign: String) -> Bool {
-        callsign.trimmingCharacters(in: .whitespacesAndNewlines).uppercased() == requestedCallsign
+        RouteClient.normalizedCallsign(callsign) == RouteClient.normalizedCallsign(requestedCallsign)
     }
 
     func isPlausible(near point: Coordinate) -> Bool {
@@ -71,7 +71,13 @@ actor RouteClient {
 
     init(session: URLSession = .shared) { self.session = session }
 
+    static func normalizedCallsign(_ value: String) -> String {
+        value.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+            .replacingOccurrences(of: "^([A-Z]{3})0+(?=[0-9])", with: "$1", options: .regularExpression)
+    }
+
     func lookup(_ callsign: String, near position: Coordinate) async throws -> FlightRoute? {
+        let callsign = Self.normalizedCallsign(callsign)
         guard position.isValid,
               callsign.range(of: "^[A-Z]{3}[A-Z0-9]{1,5}$", options: .regularExpression) != nil,
               callsign.contains(where: \.isNumber) else { return nil }

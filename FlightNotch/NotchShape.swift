@@ -1,10 +1,12 @@
 //
 //  NotchShape.swift
-//  boringNotch
+//  Flight Notch
 //
 // Created by Kai Azim on 2023-08-24.
 // Original source: https://github.com/MrKai77/DynamicNotchKit
 // Modified by Alexander on 2025-05-18.
+// Relocated from Boring Notch for Flight Notch on 2026-09-05; geometry unchanged.
+// See LICENSE and THIRD_PARTY_LICENSES for the retained license notices.
 
 import SwiftUI
 

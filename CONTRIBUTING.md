@@ -2,7 +2,7 @@
 
 Build with Xcode 26 or later on macOS. Open `FlightNotch.xcodeproj`, select the `FlightNotch` scheme, and run `swift test` plus `./build.sh` before submitting a change.
 
-Keep pull requests focused on one behavior. Describe the problem, resulting behavior, and validation. Target `main`. New source belongs in `FlightNotch/`; do not modify the retained upstream application unless the shared panel/shape code requires it.
+Keep pull requests focused on one behavior. Describe the problem, resulting behavior, and validation. Target `main`. Application source belongs in `FlightNotch/`.
 
 ## Working principles
 
