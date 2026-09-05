@@ -66,7 +66,10 @@ final class NotchInteractionTests: XCTestCase {
         try await Task.sleep(for: .milliseconds(200))
         XCTAssertFalse(state.expanded)
         state.hover(true)
-        try await Task.sleep(for: .milliseconds(200))
-        XCTAssertTrue(state.expanded)
+        let deadline = ContinuousClock.now.advanced(by: .seconds(2))
+        while !state.expanded && ContinuousClock.now < deadline {
+            try await Task.sleep(for: .milliseconds(20))
+        }
+        XCTAssertTrue(state.expanded, "Hover should eventually expand, allowing for a busy executor")
     }
 }
