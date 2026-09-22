@@ -3,6 +3,9 @@ import Foundation
 
 @MainActor
 final class NotchInteraction: ObservableObject {
+    static let minimumSize = 0.8
+    static let maximumSize = 1.2
+
     @Published private(set) var expanded = false
     @Published var pinned: Bool {
         didSet {
@@ -16,8 +19,12 @@ final class NotchInteraction: ObservableObject {
             scheduleVisibility()
         }
     }
+    @Published var size: Double {
+        didSet { preferences.set(size, forKey: "notchSize") }
+    }
     @Published var notchWidth: CGFloat = 185
     @Published var notchHeight: CGFloat = 32
+    var isResizing = false
     private let preferences: UserDefaults
     private var hoverTask: Task<Void, Never>?
     private var pointerInside = false
@@ -29,12 +36,27 @@ final class NotchInteraction: ObservableObject {
         pinned = preferences.bool(forKey: "notchAlwaysOpen")
         let delay = preferences.double(forKey: "notchHideDelay")
         hideDelay = [3.0, 5.0, 10.0, 30.0].contains(delay) ? delay : 5
+        let storedSize = preferences.object(forKey: "notchSize")
+        let previousSize = ["small": Self.minimumSize, "standard": 1.0, "large": Self.maximumSize][storedSize as? String ?? ""]
+        let value = (storedSize as? Double) ?? previousSize ?? 1
+        size = value.isFinite ? min(Self.maximumSize, max(Self.minimumSize, value)) : 1
         expanded = pinned
     }
 
-    var compactWidth: CGFloat { max(240, notchWidth + 168) }
-    var expandedWidth: CGFloat { max(480, compactWidth) }
-    var expandedHeight: CGFloat { notchHeight + 290 }
+    var compactWidth: CGFloat { max(240, notchWidth + 168 * CGFloat(size)) }
+    var expandedWidth: CGFloat { expandedWidth(for: size) }
+    var mapHeight: CGFloat { 220 * CGFloat(size) }
+    var expandedHeight: CGFloat { notchHeight + mapHeight + 70 }
+    var maximumExpandedWidth: CGFloat { expandedWidth(for: Self.maximumSize) }
+    var maximumExpandedHeight: CGFloat { notchHeight + 220 * CGFloat(Self.maximumSize) + 70 }
+
+    func resize(from start: Double, translation: CGFloat) {
+        size = min(Self.maximumSize, max(Self.minimumSize, start + Double(translation) / 220))
+    }
+
+    private func expandedWidth(for size: Double) -> CGFloat {
+        max(max(440, 480 * CGFloat(size)), notchWidth + 168 * CGFloat(size))
+    }
 
     func hover(_ inside: Bool) {
         pointerInside = inside

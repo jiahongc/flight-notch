@@ -25,7 +25,7 @@ These captures show the app using its fixed public Jersey City center with autom
 - **Compact aircraft details:** model, ICAO type, registration, distance, altitude, speed, estimated phase, and route airports in three tight rows. The city and update status sit below the map.
 - **Location awareness:** macOS determines your location and the app shows the city name. A clearly labeled Jersey City fallback works without permission.
 - **Compact controls:** radius, airline/type filters, location, map style, and feed selection live in Settings.
-- **Auto-hide or Always open:** collapse after 3, 5, 10, or 30 seconds, or pin the map open. Preferences survive restarts.
+- **Notch size and visibility:** drag the bottom edge of the expanded notch to resize the strip and map between 80% and 120%; collapse after 3, 5, 10, or 30 seconds, or pin the map open. Preferences survive restarts.
 - **Native macOS:** SwiftUI, MapKit, and CoreLocation. Works as a top-center strip on displays without a notch; respects Reduce Motion.
 
 <details>
@@ -73,6 +73,7 @@ This is a source distribution. Builds are locally signed, not notarized; there i
 | Location arrow | Recenter the map on the detection area |
 | Pin | Switch between Always open and auto-hide |
 | Sliders button | Open Settings above the notch |
+| X button | Quit Flight Notch |
 | Airplane menu-bar icon | Show flights, open Settings, pause/resume, or quit |
 
 The default hide delay is five seconds after the pointer leaves. Auto-hide collapses the map to the compact strip; it does not quit tracking. Settings temporarily collapses the map so the window stays unobstructed.

@@ -96,7 +96,9 @@ final class FlightNotchDelegate: NSObject, NSApplicationDelegate, NSWindowDelega
             interaction.notchWidth = screen.frame.width - left.width - right.width + 4
         } else { interaction.notchWidth = 0 }
         interaction.notchHeight = screen.safeAreaInsets.top > 0 ? screen.safeAreaInsets.top : 30
-        let size = NSSize(width: interaction.expandedWidth + 40, height: interaction.expandedHeight + 30)
+        // Keep the transparent window at its maximum size so a resize drag
+        // never moves the AppKit window beneath the pointer.
+        let size = NSSize(width: interaction.maximumExpandedWidth + 40, height: interaction.maximumExpandedHeight + 30)
         if panel == nil {
             panel = FlightNotchWindow(contentRect: NSRect(origin: .zero, size: size), styleMask: [.borderless, .nonactivatingPanel, .utilityWindow], backing: .buffered, defer: false)
             panel?.contentView = NSHostingView(rootView: FlightNotchView(store: store, interaction: interaction, showSettings: { [weak self] in self?.showSettings() }))
@@ -111,7 +113,7 @@ final class FlightNotchDelegate: NSObject, NSApplicationDelegate, NSWindowDelega
         let width = interaction.expanded ? interaction.expandedWidth : interaction.compactWidth
         let height = interaction.expanded ? interaction.expandedHeight : interaction.notchHeight
         let rect = NSRect(x: panel.frame.midX - width / 2, y: panel.frame.maxY - height, width: width, height: height)
-        let inside = rect.contains(NSEvent.mouseLocation)
+        let inside = interaction.isResizing || rect.contains(NSEvent.mouseLocation)
         // Keep the transparent area of the large animation window click-through.
         panel.ignoresMouseEvents = !inside
         if inside != lastInside {

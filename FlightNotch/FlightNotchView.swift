@@ -1,3 +1,4 @@
+import AppKit
 import MapKit
 import SwiftUI
 
@@ -8,6 +9,7 @@ struct FlightNotchView: View {
     @ObservedObject var interaction: NotchInteraction
     let showSettings: () -> Void
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var sizeAtDragStart: Double?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -22,6 +24,38 @@ struct FlightNotchView: View {
             .frame(width: interaction.expanded ? interaction.expandedWidth : interaction.compactWidth)
             .background(.black)
             .clipShape(NotchShape(topCornerRadius: interaction.expanded ? 12 : 6, bottomCornerRadius: interaction.expanded ? 24 : 14))
+            .overlay(alignment: .bottom) {
+                if interaction.expanded {
+                    Capsule().fill(.secondary.opacity(0.55)).frame(width: 44, height: 3)
+                        .frame(maxWidth: .infinity).frame(height: 14)
+                        .contentShape(Rectangle())
+                        .gesture(DragGesture(minimumDistance: 1, coordinateSpace: .global)
+                            .onChanged { value in
+                                let start = sizeAtDragStart ?? interaction.size
+                                sizeAtDragStart = start
+                                interaction.isResizing = true
+                                interaction.resize(from: start, translation: value.translation.height)
+                            }
+                            .onEnded { _ in
+                                interaction.isResizing = false
+                                sizeAtDragStart = nil
+                            })
+                        .help("Drag up or down to resize the notch")
+                        .accessibilityLabel("Notch size")
+                        .accessibilityValue("\(Int((interaction.size * 100).rounded())) percent")
+                        .accessibilityAdjustableAction { direction in
+                            switch direction {
+                            case .increment: interaction.resize(from: interaction.size, translation: 11)
+                            case .decrement: interaction.resize(from: interaction.size, translation: -11)
+                            @unknown default: break
+                            }
+                        }
+                        .onDisappear {
+                            interaction.isResizing = false
+                            sizeAtDragStart = nil
+                        }
+                }
+            }
             .shadow(color: .black.opacity(interaction.expanded ? 0.18 : 0.06), radius: interaction.expanded ? 14 : 3, y: 6)
             .animation(reduceMotion ? nil : .spring(response: 0.42, dampingFraction: 0.85), value: interaction.expanded)
             Spacer(minLength: 0)
@@ -48,6 +82,7 @@ struct FlightNotchView: View {
                 else { Text(store.statusLabel) }
             }
             .font(.system(size: 9, weight: .medium, design: .monospaced))
+            .lineLimit(1).minimumScaleFactor(0.8)
             .frame(maxWidth: .infinity)
         }
         .padding(.horizontal, 12)
@@ -108,7 +143,7 @@ private struct FlightMapView: View {
             .mapStyle(store.satellite ? .imagery(elevation: .flat) : .standard(elevation: .flat, emphasis: .muted, pointsOfInterest: .excludingAll))
             .mapControls { }
             .overlay(alignment: .top) { mapToolbar.padding(10) }
-            .frame(height: 220)
+            .frame(height: interaction.mapHeight)
             .onAppear { recenter() }
             .onChange(of: store.radius) { _, _ in recenter() }
             .onChange(of: store.coordinate) { _, _ in
@@ -193,6 +228,7 @@ private struct FlightMapView: View {
                 mapButton(interaction.pinned ? "pin.fill" : "pin", label: interaction.pinned ? "Unpin notch" : "Keep notch open") { interaction.togglePin() }
                     .foregroundStyle(interaction.pinned ? flightBlue : .primary)
                 mapButton("slider.horizontal.3", label: "Flight settings", action: showSettings)
+                mapButton("xmark", label: "Quit Flight Notch") { NSApp.terminate(nil) }
             }.padding(3).background(.regularMaterial, in: Capsule())
         }
     }
